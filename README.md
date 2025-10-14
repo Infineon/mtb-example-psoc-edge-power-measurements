@@ -4,11 +4,11 @@ This code example shows how to achieve selected power modes listed as SIDs in th
 
 This code example has a three project structure: CM33 secure, CM33 non-secure, and CM55 projects. All three projects are programmed to the internal RRAM. Extended boot launches the CM33 Secure project from a fixed location in the internal RRAM, which then configures the protection settings and launches the CM33 non-secure application. Additionally, CM33 non-secure application enables CM55 CPU and launches the CM55 application.
 
-> **Note:** You may observe higher power consumption values for SIDH20A, SIDL20B, and SIDU20C where the CM33 is executed from SRAM, CM55 is executed from System SRAM, and RRAM is in sleep mode as per the datasheet configurations. However, in the code example, all three projects: CM33 secure, CM33 non-secure, and CM55 are programmed in the internal RRAM, which is implemented to maintain a consistent application structure and avoid modifying the linker files.
+>**Note:** You may observe higher power consumption than the datasheet values for the below mentioned specs due to differences in where the code executes. <br> - For SIDH20A, SIDL20B, and SIDU20C: In the datasheet, CM33 executes from SRAM, CM55 executes from System SRAM, and RRAM is in sleep. In this code example, the CM33 (secure), CM33 (non-secure), and CM55 projects all execute from internal RRAM. <br> - For SIDDSO and SIDHIBA: In the datasheet, all projects execute from SRAM. In this code example, all projects execute from internal RRAM resulting in an increase of approximately 600nA in IDDD current. <br> This configuration is used to maintain a consistent application structure and avoids modifying the linker files.
 
 [View this README on GitHub.](https://github.com/Infineon/mtb-example-psoc-edge-power-measurements)
 
-[Provide feedback on this code example.](https://cypress.co1.qualtrics.com/jfe/form/SV_1NTns53sK2yiljn?Q_EED=eyJVbmlxdWUgRG9jIElkIjoiQ0UyMzg3MTkiLCJTcGVjIE51bWJlciI6IjAwMi0zODcxOSIsIkRvYyBUaXRsZSI6IlBTT0MmdHJhZGU7IEVkZ2UgTUNVOiBQb3dlciBtZWFzdXJlbWVudHMiLCJyaWQiOiJzdXJlc2hrdW1hcmEiLCJEb2MgdmVyc2lvbiI6IjIuMC4wIiwiRG9jIExhbmd1YWdlIjoiRW5nbGlzaCIsIkRvYyBEaXZpc2lvbiI6Ik1DRCIsIkRvYyBCVSI6IklDVyIsIkRvYyBGYW1pbHkiOiJQU09DIn0=)
+[Provide feedback on this code example.](https://cypress.co1.qualtrics.com/jfe/form/SV_1NTns53sK2yiljn?Q_EED=eyJVbmlxdWUgRG9jIElkIjoiQ0UyMzg3MTkiLCJTcGVjIE51bWJlciI6IjAwMi0zODcxOSIsIkRvYyBUaXRsZSI6IlBTT0MmdHJhZGU7IEVkZ2UgTUNVOiBQb3dlciBtZWFzdXJlbWVudHMiLCJyaWQiOiJzdXJlc2hrdW1hcmEiLCJEb2MgdmVyc2lvbiI6IjIuMS4wIiwiRG9jIExhbmd1YWdlIjoiRW5nbGlzaCIsIkRvYyBEaXZpc2lvbiI6Ik1DRCIsIkRvYyBCVSI6IklDVyIsIkRvYyBGYW1pbHkiOiJQU09DIn0=)
 
 See the [Design and implementation](docs/design_and_implementation.md) for the functional description of this code example.
 
@@ -40,7 +40,7 @@ Ensure the following jumper and pin configuration on board.
 - BOOT SW must be in the LOW/OFF position
 - J20 and J21 must be in the tristate/not connected (NC) position
 
-Perform the hardware reworks mentioned in the [Rework for current measurement](#rework-for-current-measurement) section. This rework is required to prevent current leakages occuring in other domains like Analog MIC, BT and Wi-Fi. If this rework is not implemented, the measured current values can be up to 500 uA (IBAT + IDDD) higher in High Performance (HP) modes.
+> **Note:** Perform the hardware reworks mentioned in the **Rework for PSOC&trade; Edge E84 MCU low power current measurement** section 3.3.16 of the [KIT_PSE84_EVAL PSOC&trade; Edge E84 Evaluation Kit guide](www.infineon.com/KIT_PSE84_EVAL_UG) before performing the low power current measurements.
 
 
 ## Software setup
@@ -62,11 +62,14 @@ See [Using the code example](docs/using_the_code_example.md) for instructions on
 
    Configure the `SPEC_ID` macro to be one of the supported specification IDs (Spec ID#) listed in the PSOC&trade; Edge E84 MCU datasheet 
    
-   If you want to specify your custom settings for the PSOC&trade; Edge E84 MCU instead of the datasheet specification, set the `SPEC_ID` macro to `CUSTOM` and define your custom settings in the same file by defining the appropriate macros under the line #elif(SPEC_ID == CUSTOM)
+   If you want to specify your custom settings for the PSOC&trade; Edge E84 MCU instead of the datasheet specification, set the `SPEC_ID` macro to `CUSTOM` and define your custom settings in the same file by defining the appropriate macros under the line #elif(SPEC_ID == CUSTOM). 
+
+   Note that the custom settings only includes few configurations used in this application to be customized. To replicate other specifications from the datasheet which are not part of this code example, additional memory layout updates and code changes would be required.
 
 3. After programming, the application starts automatically. Press XRES (SW1) on the kit once programmed
 
    > **Note:** <br> 1. During programming, additional pins, and resources are initialized by the flash loader, which can lead to increased initial current consumption. To mitigate this limitation, an external reset is required. <br> 2. Also, currently an external reset is required after programming for the MCU to enter DeepSleep-OFF mode. To address this, you can implement a workaround by terminating the debug session at the start of the main() function. This can be achieved by writing to specific debug control-related MMIO registers, as demonstrated below: <br> 
+
    ```
    /* FP_CTL */
     *((uint32_t*)0xE0002000) = 0x00000002;
@@ -78,22 +81,7 @@ See [Using the code example](docs/using_the_code_example.md) for instructions on
 
 4. Use J25 (VBAT.MCU) on the PSOC&trade; Edge E84 baseboard to measure the IBAT current consumption
 
-5. Remove the ferrite bead (FB1) on the PSOC&trade; Edge E84 system-on-module (SoM) and connect two wires across them to measure the IDDD current consumption. Note that FB1 provides a good approximation closer to datasheet value but it does not include VDDQ, VDD.BAT, VDD.DSI and VDDA. You can also measure via J26 which includes some overheads as it supplies the SMIF Chip select pull-ups, I2C pullups, BT/WIFI SDIO interface, and AMIC signal conditioning circuits. Refer to [kit Schematics](https://www.infineon.com/KIT_PSE84_EVAL) for more details. 
-
-
-## Rework for current measurement
-
-> **Note:** The following hardware reworks for current measurement are also mentioned in the **Rework for low power current measurement** section of the [PSOC&trade; Edge E84 Evaluation Kit guide](https://www.infineon.com/products/microcontroller/32-bit-psoc-arm-cortex/32-bit-psoc-edge-arm/psoc-edge-e84#Documents).
-
-This rework prevents current leakages that can occur in the PSOC&trade; Edge E84 Evaluation Kit. If this rework is not implemented, the measured current values may be up to a maximum of 100 uA higher in High Performance (HP) modes.
-
-Rework on PSOC&trade; Edge E84 SoM: 
-
-- Remove R229, R230, and R247 resistors
-
-Rework on PSOC&trade; Edge E8 base board: 
-
-- Remove R187 and R397 resistors
+5. Use J26 (MCU.1V8) on the PSOC&trade; Edge E84 baseboard to measure the IDDD current consumption. Note that J26 also includes VDDIO, which increases current consumption by 200nA in deep sleep off mode and more in other modes.
 
 
 ## Related resources
@@ -123,6 +111,7 @@ Document title: *CE238719* – *PSOC&trade; Edge MCU: Power measurements*
  ------- | ---------------------
  1.x.0   | New code example <br> Early access release
  2.0.0   | GitHub release
+ 2.1.0   | Updated README.md <br> Updated CM33 non-secure application to disable SMIF and WCO pins and peripherals <br> Updated CM33 non-secure application to use low power band gap settings for DEEPSLEEP OFF configuration
 <br>
 
 
