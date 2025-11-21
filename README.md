@@ -4,11 +4,11 @@ This code example shows how to achieve selected power modes listed as SIDs in th
 
 This code example has a three project structure: CM33 secure, CM33 non-secure, and CM55 projects. All three projects are programmed to the internal RRAM. Extended boot launches the CM33 Secure project from a fixed location in the internal RRAM, which then configures the protection settings and launches the CM33 non-secure application. Additionally, CM33 non-secure application enables CM55 CPU and launches the CM55 application.
 
->**Note:** You may observe higher power consumption than the datasheet values for the below mentioned specs due to differences in where the code executes. <br> - For SIDH20A, SIDL20B, and SIDU20C: In the datasheet, CM33 executes from SRAM, CM55 executes from System SRAM, and RRAM is in sleep. In this code example, the CM33 (secure), CM33 (non-secure), and CM55 projects all execute from internal RRAM. <br> - For SIDDSO and SIDHIBA: In the datasheet, all projects execute from SRAM. In this code example, all projects execute from internal RRAM resulting in an increase of approximately 600nA in IDDD current. <br> This configuration is used to maintain a consistent application structure and avoids modifying the linker files.
+>**Note:** You may observe higher power consumption than the datasheet values for the below mentioned specs due to differences in where the code executes. <br> - For SIDH20A, SIDL20B, and SIDU20C: As per the datasheet, CM33 executes from SRAM, CM55 executes from System SRAM, and RRAM is in sleep. In this code example, the CM33 (secure), CM33 (non-secure), and CM55 projects all execute from internal RRAM. <br> - For SIDDSO and SIDHIBA: As per the datasheet, these two configurations execute from SRAM whereas they execute from internal RRAM in this code example resulting in an increase of  ~600nA in IDDD current. <br> This configuration is used to maintain a consistent application structure and avoids modifying the linker files.
 
 [View this README on GitHub.](https://github.com/Infineon/mtb-example-psoc-edge-power-measurements)
 
-[Provide feedback on this code example.](https://cypress.co1.qualtrics.com/jfe/form/SV_1NTns53sK2yiljn?Q_EED=eyJVbmlxdWUgRG9jIElkIjoiQ0UyMzg3MTkiLCJTcGVjIE51bWJlciI6IjAwMi0zODcxOSIsIkRvYyBUaXRsZSI6IlBTT0MmdHJhZGU7IEVkZ2UgTUNVOiBQb3dlciBtZWFzdXJlbWVudHMiLCJyaWQiOiJzdXJlc2hrdW1hcmEiLCJEb2MgdmVyc2lvbiI6IjIuMS4wIiwiRG9jIExhbmd1YWdlIjoiRW5nbGlzaCIsIkRvYyBEaXZpc2lvbiI6Ik1DRCIsIkRvYyBCVSI6IklDVyIsIkRvYyBGYW1pbHkiOiJQU09DIn0=)
+[Provide feedback on this code example.](https://cypress.co1.qualtrics.com/jfe/form/SV_1NTns53sK2yiljn?Q_EED=eyJVbmlxdWUgRG9jIElkIjoiQ0UyMzg3MTkiLCJTcGVjIE51bWJlciI6IjAwMi0zODcxOSIsIkRvYyBUaXRsZSI6IlBTT0MmdHJhZGU7IEVkZ2UgTUNVOiBQb3dlciBtZWFzdXJlbWVudHMiLCJyaWQiOiJzdXJlc2hrdW1hcmEiLCJEb2MgdmVyc2lvbiI6IjIuMS4xIiwiRG9jIExhbmd1YWdlIjoiRW5nbGlzaCIsIkRvYyBEaXZpc2lvbiI6Ik1DRCIsIkRvYyBCVSI6IklDVyIsIkRvYyBGYW1pbHkiOiJQU09DIn0=)
 
 See the [Design and implementation](docs/design_and_implementation.md) for the functional description of this code example.
 
@@ -39,8 +39,9 @@ This example uses the board's default configuration. See the kit user guide to e
 Ensure the following jumper and pin configuration on board.
 - BOOT SW must be in the LOW/OFF position
 - J20 and J21 must be in the tristate/not connected (NC) position
+- J23 must be in 1.8V (1-2) position 
 
-> **Note:** Perform the hardware reworks mentioned in the **Rework for PSOC&trade; Edge E84 MCU low power current measurement** section 3.3.16 of the [KIT_PSE84_EVAL PSOC&trade; Edge E84 Evaluation Kit guide](www.infineon.com/KIT_PSE84_EVAL_UG) before performing the low power current measurements.
+> **Note:** Perform the hardware reworks mentioned in the **Rework for PSOC&trade; Edge E84 MCU low power current measurement** section 3.3.16 of the [KIT_PSE84_EVAL PSOC&trade; Edge E84 Evaluation Kit guide](https://www.infineon.com/KIT_PSE84_EVAL_UG) before performing the low power current measurements.
 
 
 ## Software setup
@@ -68,20 +69,15 @@ See [Using the code example](docs/using_the_code_example.md) for instructions on
 
 3. After programming, the application starts automatically. Press XRES (SW1) on the kit once programmed
 
-   > **Note:** <br> 1. During programming, additional pins, and resources are initialized by the flash loader, which can lead to increased initial current consumption. To mitigate this limitation, an external reset is required. <br> 2. Also, currently an external reset is required after programming for the MCU to enter DeepSleep-OFF mode. To address this, you can implement a workaround by terminating the debug session at the start of the main() function. This can be achieved by writing to specific debug control-related MMIO registers, as demonstrated below: <br> 
+   > **Note:** <br> 1. During programming, additional pins, and resources are initialized by the flash loader, which can lead to increased initial current consumption. To mitigate this limitation, an external reset is required. <br> 2. Also, currently an external reset is required after programming for the MCU to enter DeepSleep-OFF mode. To address this, you can implement a workaround by terminating the debug session at the start of the main() function. This can be achieved by writing to specific debug control-related MMIO registers, as demonstrated below: <br>
 
-   ```
-   /* FP_CTL */
-    *((uint32_t*)0xE0002000) = 0x00000002;
-   /* DCB_DEMCR */
-    *((uint32_t*)0xE000EDFC) = 0x00000000;
-   /* DCB_DHCSR */
-    *((uint32_t*)0xE000EDF0) = 0xA05F0000;
-   ```
+   *((uint32_t*)0xE0002000) = 0x00000002; // FP_CTL   
+   *((uint32_t*)0xE000EDFC) = 0x00000000; // DCB_DEMCR  
+   *((uint32_t*)0xE000EDF0) = 0xA05F0000; // DCB_DHCSR         
 
 4. Use J25 (VBAT.MCU) on the PSOC&trade; Edge E84 baseboard to measure the IBAT current consumption
 
-5. Use J26 (MCU.1V8) on the PSOC&trade; Edge E84 baseboard to measure the IDDD current consumption. Note that J26 also includes VDDIO, which increases current consumption by 200nA in deep sleep off mode and more in other modes.
+5. Use J26 (MCU.1V8) on the PSOC&trade; Edge E84 baseboard to measure the IDDD current consumption. Note that J26 also includes VDDIO current, which increases current consumption by ~200nA in all these modes supported by the code example. Subtract this VDDIO current (200nA) to obtain the IDDD current. 
 
 
 ## Related resources
@@ -112,6 +108,7 @@ Document title: *CE238719* – *PSOC&trade; Edge MCU: Power measurements*
  1.x.0   | New code example <br> Early access release
  2.0.0   | GitHub release
  2.1.0   | Updated README.md <br> Updated CM33 non-secure application to disable SMIF and WCO pins and peripherals <br> Updated CM33 non-secure application to use low power band gap settings for DEEPSLEEP OFF configuration
+ 2.1.1   | Updated README.md <br> Updated docs/design_and_implementation.md 
 <br>
 
 

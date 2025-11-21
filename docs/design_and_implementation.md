@@ -23,11 +23,15 @@ Based on the selection of the SIDs in the *specs.h* file, the clock, power modes
 A few SIDs from the datasheet are provided as macros in the *shared* > *include* > *specs.h* file. You can provide the SID number to the `SPEC_ID` macro to apply the configurations accordingly as follows: 
 
 ```
-/* See the "Power supplies and operating conditions" section in the PSOC Edge E84 datasheet and pick one of the SPEC IDs from the CPU currents table among the ones listed below as `SPEC_ID` constants. Set the #define SPEC_ID to the desired value. You can also set to CUSTOM and define your own settings. */
+/* Consult the PSOC Edge E84 datasheet (Section 8.2 , Power supplies and 
+ * operating conditions) and pick one of the SPEC IDs from the CPU currents 
+ * table among the ones listed below as SPEC_ID constants. Set the #define SPEC_ID 
+ * to the desired value. You can also set to CUSTOM and define your own settings.
+ */
 #define SPEC_ID (1)
 
 /* SPEC IDs CONSTANTS (Do not alter these macros) */
-/* System Active mode (HP, LP, and ULP) */
+/* System Active Mode (HP, LP and ULP) */
 #define SIDH00A (1)
 #define SIDH01A (2)
 #define SIDH10A (3)
@@ -46,11 +50,11 @@ A few SIDs from the datasheet are provided as macros in the *shared* > *include*
 #define SIDU12C (16)
 #define SIDU14C (17)
 #define SIDU20C (18)
-/* System DeepSleep mode */
-#define SIDDSA  (19)
-/* System Hibernate mode */
+/* System Deepsleep-OFF Mode */
+#define SIDDSO  (19)
+/* System Hibernate Mode */
 #define SIDHIBA (20)
-/* CUSTOM configuration */
+/* CUSTOM Configuration */
 #define CUSTOM  (21)
 /* END OF SPEC ID CONSTANTS */
 ```
