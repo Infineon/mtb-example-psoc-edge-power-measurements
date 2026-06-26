@@ -8,14 +8,14 @@ This code example has a three project structure: CM33 secure, CM33 non-secure, a
 
 [View this README on GitHub.](https://github.com/Infineon/mtb-example-psoc-edge-power-measurements)
 
-[Provide feedback on this code example.](https://cypress.co1.qualtrics.com/jfe/form/SV_1NTns53sK2yiljn?Q_EED=eyJVbmlxdWUgRG9jIElkIjoiQ0UyMzg3MTkiLCJTcGVjIE51bWJlciI6IjAwMi0zODcxOSIsIkRvYyBUaXRsZSI6IlBTT0MmdHJhZGU7IEVkZ2UgTUNVOiBQb3dlciBtZWFzdXJlbWVudHMiLCJyaWQiOiJzdXJlc2hrdW1hcmEiLCJEb2MgdmVyc2lvbiI6IjIuMS4xIiwiRG9jIExhbmd1YWdlIjoiRW5nbGlzaCIsIkRvYyBEaXZpc2lvbiI6Ik1DRCIsIkRvYyBCVSI6IklDVyIsIkRvYyBGYW1pbHkiOiJQU09DIn0=)
+[Provide feedback on this code example.](https://yourvoice.infineon.com/jfe/form/SV_1NTns53sK2yiljn?Q_EED=eyJVbmlxdWUgRG9jIElkIjoiQ0UyMzg3MTkiLCJTcGVjIE51bWJlciI6IjAwMi0zODcxOSIsIkRvYyBUaXRsZSI6IlBTT0MmdHJhZGU7IEVkZ2UgTUNVOiBQb3dlciBtZWFzdXJlbWVudHMiLCJyaWQiOiJhcnZpbmRrdW1hci5zdXJlc2hrdW1hckBpbmZpbmVvbi5jb20iLCJEb2MgdmVyc2lvbiI6IjIuMi4wIiwiRG9jIExhbmd1YWdlIjoiRW5nbGlzaCIsIkRvYyBEaXZpc2lvbiI6Ik1DRCIsIkRvYyBCVSI6IklDVyIsIkRvYyBGYW1pbHkiOiJQU09DIn0=)
 
 See the [Design and implementation](docs/design_and_implementation.md) for the functional description of this code example.
 
 
 ## Requirements
 
-- [ModusToolbox&trade;](https://www.infineon.com/modustoolbox) v3.6 or later (tested with v3.6)
+- [ModusToolbox&trade;](https://www.infineon.com/modustoolbox) v3.8 or later (tested with v3.8)
 - Board support package (BSP) minimum required version: 1.0.0
 - Programming language: C
 - Associated parts: All [PSOC&trade; Edge MCU](https://www.infineon.com/products/microcontroller/32-bit-psoc-arm-cortex/32-bit-psoc-edge-arm) parts
@@ -30,18 +30,19 @@ See the [Design and implementation](docs/design_and_implementation.md) for the f
 
 - [PSOC&trade; Edge E84 Evaluation Kit](https://www.infineon.com/KIT_PSE84_EVAL) (`KIT_PSE84_EVAL_EPC2`) – Default value of `TARGET`
 - [PSOC&trade; Edge E84 Evaluation Kit](https://www.infineon.com/KIT_PSE84_EVAL) (`KIT_PSE84_EVAL_EPC4`)
+- [PSOC&trade; Edge E84 HMI Kit](https://www.infineon.com/KIT_PSE84_HMI) (`KIT_PSE84_HMI`)
 
 
 ## Hardware setup
 
 This example uses the board's default configuration. See the kit user guide to ensure that the board is configured correctly.
 
-Ensure the following jumper and pin configuration on board.
-- BOOT SW must be in the LOW/OFF position
-- J20 and J21 must be in the tristate/not connected (NC) position
-- J23 must be in 1.8V (1-2) position 
+Ensure the following jumper and pin configuration on boards.
+- BOOT SW must be in the LOW/OFF position on all the supported kits
+- J20 and J21 must be in the tristate/not connected (NC) position for PSOC&trade; Edge E84 Evaluation Kits
+- J23 must be in 1.8V (1-2) position for PSOC&trade; Edge E84 Evaluation Kits
 
-> **Note:** Perform the hardware reworks mentioned in the **Rework for PSOC&trade; Edge E84 MCU low power current measurement** section 3.3.16 of the [KIT_PSE84_EVAL PSOC&trade; Edge E84 Evaluation Kit guide](https://www.infineon.com/KIT_PSE84_EVAL_UG) before performing the low power current measurements.
+> **Note:** Perform the hardware reworks mentioned in the **Rework for PSOC&trade; Edge E84 MCU low power current measurement** section 3.3.16 of the [KIT_PSE84_EVAL PSOC&trade; Edge E84 Evaluation Kit guide](https://www.infineon.com/KIT_PSE84_EVAL_UG) before performing the low power current measurements. For KIT_PSE84_HMI no rework is required.
 
 
 ## Software setup
@@ -75,9 +76,13 @@ See [Using the code example](docs/using_the_code_example.md) for instructions on
    *((uint32_t*)0xE000EDFC) = 0x00000000; // DCB_DEMCR  
    *((uint32_t*)0xE000EDF0) = 0xA05F0000; // DCB_DHCSR         
 
-4. Use J25 (VBAT.MCU) on the PSOC&trade; Edge E84 baseboard to measure the IBAT current consumption
+4. Measure the IBAT current consumption:
+   - On the PSOC&trade; Edge E84 Evaluation Kit baseboard, use J25 (VBAT.MCU)
+   - On the PSOC&trade; Edge E84 HMI Kit baseboard, use J21 (VBAT.MCU)
 
-5. Use J26 (MCU.1V8) on the PSOC&trade; Edge E84 baseboard to measure the IDDD current consumption. Note that J26 also includes VDDIO current, which increases current consumption by ~200nA in all these modes supported by the code example. Subtract this VDDIO current (200nA) to obtain the IDDD current. 
+5. Measure the IDDD current consumption:
+   - On the PSOC&trade; Edge E84 Evaluation Kit baseboard, use J26 (MCU.1V8). Note that J26 also includes VDDIO current, which increases current consumption by ~200nA in all these modes supported by the code example. Subtract this VDDIO current (200nA) to obtain the IDDD current.
+   - On the PSOC&trade; Edge E84 HMI Kit baseboard, use J20 (MCU.1V8)
 
 
 ## Related resources
@@ -108,7 +113,8 @@ Document title: *CE238719* – *PSOC&trade; Edge MCU: Power measurements*
  1.x.0   | New code example <br> Early access release
  2.0.0   | GitHub release
  2.1.0   | Updated README.md <br> Updated CM33 non-secure application to disable SMIF and WCO pins and peripherals <br> Updated CM33 non-secure application to use low power band gap settings for DEEPSLEEP OFF configuration
- 2.1.1   | Updated README.md <br> Updated docs/design_and_implementation.md 
+ 2.1.1   | Updated README.md <br> Updated docs/design_and_implementation.md
+ 2.2.0   | Added support for KIT_PSE84_HMI
 <br>
 
 
